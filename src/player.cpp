@@ -5,8 +5,17 @@
 
 
 void UpdatePlayer(Player& p) {
-    p.pos.x += 2;
+// Horizontal movement (fixed timestep 60fps)
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
+        p.velocity.x = -p.speed;
+    } else if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
+        p.velocity.x = p.speed;
+    } else {
+        p.velocity.x = 0;
+    }
+    p.pos.x += p.velocity.x;
 
+    // Jump and gravity (fixed timestep)
     if (IsKeyPressed(KEY_SPACE) && p.onGround) {
         p.velocityY = -10;
         p.onGround = false;

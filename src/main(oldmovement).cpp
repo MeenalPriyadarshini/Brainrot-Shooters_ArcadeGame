@@ -10,12 +10,12 @@
 bool AreAllEnemiesGone(const std::vector<Enemy>& enemies, float camLeft) {
     for (const auto& e : enemies) {
         if (e.active && e.pos.x > camLeft) {
-            return false;
+            return false; // still active in screen/world
         }
     }
     return true;
 }
-    
+
 int main() {
     const int screenWidth = 900;
     const int screenHeight = 500;
@@ -24,29 +24,25 @@ int main() {
     SetTargetFPS(60);
     HideCursor();
 
- Player player = { {100, 380}, {0, 0}, 5.0f, 0.0f, true, 100 };
+    Player player{{100, 380}, 0, true, 100};
     std::vector<Bullet> bullets;
     std::vector<Enemy> enemies;
+
+    SpawnEnemies(enemies, 50, 3, 600);
 
     Camera2D camera = {0};
     camera.offset = {screenWidth/2.0f, screenHeight/2.0f};
     camera.zoom = 1.0f;
 
     float shootCooldown = 0;
-    float timePlaying = 0.0f;  // Fix plyerrightshiftbug - reset on restart
     int energy = 0;
-    bool clearedWave = false;
-    float waveClearTimer = 0.0f;
 
     GameState state = MENU;
 
     while (!WindowShouldClose()) {
 
         // ================= STATE CONTROL =================
-        if (state == MENU && IsKeyPressed(KEY_ENTER)) {
-            SpawnEnemies(enemies, 50, 3, 600);
-            state = PLAYING;
-        }
+        if (state == MENU && IsKeyPressed(KEY_ENTER)) state = PLAYING;
         if (state == PLAYING && IsKeyPressed(KEY_ESCAPE)) state = PAUSED;
         if (state == PAUSED && IsKeyPressed(KEY_ESCAPE)) state = PLAYING;
 
@@ -54,25 +50,12 @@ int main() {
         if (state == PLAYING) {
 
             UpdatePlayer(player);
+            camera.target = player.pos;
 
-            // Fixed camera scroll relative to player spawn
-            timePlaying += GetFrameTime();
-            camera.target.x = 100.0f + timePlaying * 120.0f;  // 2 pix/frame *60 = 120 pix/s
-            camera.target.y = player.pos.y;
-
-            // Clamp player relative to camera view (roughly centered, visible movement)
-            const float halfBound = GetScreenWidth() / 2.0f - 100.0f;
-            player.pos.x = fmaxf(camera.target.x - halfBound, fminf(player.pos.x, camera.target.x + halfBound));
-
-            // Disabled recenter (prevent sliding)
-            // if (fabsf(player.velocity.x) < 0.1f) {
-            //     player.pos.x += (camera.target.x - player.pos.x) * 0.03f;
-            // }
-
+            // Wave clear check (new fix for off-screen enemies)
             float camLeft = camera.target.x - 500;
-            if (!clearedWave && AreAllEnemiesGone(enemies, camLeft)) {
-                clearedWave = true;
-                waveClearTimer = 2.0f;
+            if (AreAllEnemiesGone(enemies, camLeft)) {
+                state = GAMEOVER;
             }
 
             // AIM
@@ -118,26 +101,29 @@ int main() {
                 player.hp = 0;
                 state = GAMEOVER;
             }
-
-            if (clearedWave) {
-                waveClearTimer -= GetFrameTime();
-                if (waveClearTimer <= 0) {
-                    state = GAMEOVER;
+            // Wave clear ends game (old check - complements new)
+            static float waveCheckTimer = 0;
+            waveCheckTimer += GetFrameTime();
+            if (waveCheckTimer > 0.1f) {
+                bool allDead = true;
+                for (auto &e : enemies) {
+                    if (e.active) {
+                        allDead = false;
+                        break;
+                    }
                 }
+                if (allDead) state = GAMEOVER;
+                waveCheckTimer = 0;
             }
-
-            // Removed duplicate wave check (causing compile error)
         }
 
-        // RESTART - fix plyerrightshiftbug
+        // RESTART
         if (state == GAMEOVER && IsKeyPressed(KEY_R)) {
-            timePlaying = 0.0f;
-            camera.target = {100.0f, 380.0f};
-            player = { {100, 380}, {0, 0}, 5.0f, 0.0f, true, 100 };
+            player = {{100,380},0,true,100};
             bullets.clear();
             enemies.clear();
             energy = 0;
-            clearedWave = false;
+            SpawnEnemies(enemies, 50, 3, 600);
             state = MENU;
         }
 
@@ -147,9 +133,8 @@ int main() {
 
         if (state == MENU) {
             DrawMenuScreen();
-        } else if (state == GAMEOVER) {
-            DrawGameOverScreen(energy);
-        } else {
+        }
+        else {
             BeginMode2D(camera);
 
             DrawMap(camera);
@@ -160,6 +145,7 @@ int main() {
             EndMode2D();
 
             if (state == PAUSED) DrawPauseScreen();
+            if (state == GAMEOVER) DrawGameOverScreen(energy);
 
             // UI
             DrawRectangle(10,10,200,20,DARKGRAY);
@@ -168,12 +154,10 @@ int main() {
             DrawText(TextFormat("Energy: %d", energy),10,70,20,GREEN);
         }
 
-        if (state == PLAYING) {
-            // CURSOR
-            Vector2 m = GetMousePosition();
-            DrawLine(m.x-10,m.y,m.x+10,m.y,GREEN);
-            DrawLine(m.x,m.y-10,m.x,m.y+10,GREEN);
-        }
+        // CURSOR
+        Vector2 m = GetMousePosition();
+        DrawLine(m.x-10,m.y,m.x+10,m.y,GREEN);
+        DrawLine(m.x,m.y-10,m.x,m.y+10,GREEN);
 
         EndDrawing();
     }

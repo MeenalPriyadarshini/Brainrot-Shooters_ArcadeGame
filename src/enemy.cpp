@@ -26,21 +26,35 @@ void SpawnEnemies(std::vector<Enemy>& enemies, int small, int big, float startX)
 }
 
 void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, int& hp) {
+    const float worldSpeed = 120.0f;
 
+    // Move world backward (enemies left)
+    for (auto &e : enemies) {
+        if (e.active) {
+            e.pos.x -= worldSpeed * GetFrameTime();
+            
+            // Cull off-screen left
+            if (e.pos.x < playerPos.x - 500) {
+                e.active = false;
+            }
+        }
+    }
+
+    // Damage collision
     static float timer = 0;
     timer += GetFrameTime();
 
-    for (auto &e: enemies) {
+    for (auto &e : enemies) {
         if (!e.active) continue;
 
         float dx = playerPos.x - e.pos.x;
         float dy = playerPos.y - e.pos.y;
-float dist = std::sqrtf(dx*dx+dy*dy);
+        float dist = std::sqrtf(dx*dx + dy*dy);
 
-        if (dist < e.radius+10 && timer>0.5f) {
+        if (dist < e.radius + 10 && timer > 0.5f) {
             hp -= 5;
-            if (hp<0) hp=0;
-            timer=0;
+            if (hp < 0) hp = 0;
+            timer = 0;
         }
     }
 }
