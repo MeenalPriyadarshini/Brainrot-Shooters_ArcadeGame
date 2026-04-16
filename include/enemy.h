@@ -2,15 +2,36 @@
 #include "raylib.h"
 #include <vector>
 
+enum EnemyType {
+    ETYPE1,
+    ETYPE2,
+    BOSS
+};
+
 struct Enemy {
     Vector2 pos;
-    int hp;
     float radius;
+    int hp;
     Color color;
     bool active;
     int energyValue;
+
+    EnemyType type;
+
+    // for EType2 dash
+    Vector2 velocity;
+    float lockTimer;
+    bool locked;
 };
 
-void SpawnEnemies(std::vector<Enemy>& enemies, int small, int big, float startX);
-void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, int& hp);
+
+
+void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, float camX, int& hp);
 void DrawEnemies(const std::vector<Enemy>& enemies);
+
+void SpawnWave1Enemies(std::vector<Enemy>& enemies, float startX);
+void SpawnBoss(std::vector<Enemy>& enemies, float camX);
+void SpawnEType2(std::vector<Enemy>& enemies, float camX, const Vector2& playerPos);
+
+bool AreWave1EnemiesDead(const std::vector<Enemy>& enemies);
+bool IsBossAlive(const std::vector<Enemy>& enemies);

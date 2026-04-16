@@ -7,15 +7,6 @@
 #include "include/screen.h"
 #include "include/map.h"
 
-bool AreAllEnemiesGone(const std::vector<Enemy>& enemies, float camLeft) {
-    for (const auto& e : enemies) {
-        if (e.active && e.pos.x > camLeft) {
-            return false;
-        }
-    }
-    return true;
-}
-    
 int main() {
     const int screenWidth = 900;
     const int screenHeight = 500;
@@ -35,8 +26,8 @@ int main() {
     float shootCooldown = 0;
     float timePlaying = 0.0f;  // Fix plyerrightshiftbug - reset on restart
     int energy = 0;
-    bool clearedWave = false;
-    float waveClearTimer = 0.0f;
+    bool bossSpawned = false;
+    float bossTimer = 0.0f;
 
     GameState state = MENU;
 
@@ -44,7 +35,10 @@ int main() {
 
         // ================= STATE CONTROL =================
         if (state == MENU && IsKeyPressed(KEY_ENTER)) {
-            SpawnEnemies(enemies, 50, 3, 600);
+            enemies.clear();
+            SpawnWave1Enemies(enemies, 600);
+            bossSpawned = false;
+            bossTimer = 0;
             state = PLAYING;
         }
         if (state == PLAYING && IsKeyPressed(KEY_ESCAPE)) state = PAUSED;
@@ -69,12 +63,6 @@ int main() {
             //     player.pos.x += (camera.target.x - player.pos.x) * 0.03f;
             // }
 
-            float camLeft = camera.target.x - 500;
-            if (!clearedWave && AreAllEnemiesGone(enemies, camLeft)) {
-                clearedWave = true;
-                waveClearTimer = 2.0f;
-            }
-
             // AIM
             Vector2 center = {player.pos.x, player.pos.y - 20};
             Vector2 mouse = GetScreenToWorld2D(GetMousePosition(), camera);
@@ -94,7 +82,7 @@ int main() {
             }
 
             UpdateBullets(bullets);
-            UpdateEnemies(enemies, player.pos, player.hp);
+            UpdateEnemies(enemies, player.pos, camera.target.x, player.hp);
             
             // COLLISION
             for (auto &b : bullets) {
@@ -102,7 +90,7 @@ int main() {
                     if (!b.active || !e.active) continue;
 
                     if (CheckCollisionCircles(b.pos, 3, e.pos, e.radius)) {
-                        e.hp -= 10;
+                        e.hp -= 3;
                         b.active = false;
 
                         if (e.hp <= 0) {
@@ -113,20 +101,33 @@ int main() {
                 }
             }
 
+            // Wave 1 Logic
+            if (!bossSpawned && AreWave1EnemiesDead(enemies)) {
+                SpawnBoss(enemies, camera.target.x);
+                bossSpawned = true;
+            }
+
+            // Boss behavior
+            if (bossSpawned && IsBossAlive(enemies)) {
+                bossTimer += GetFrameTime();
+
+                if (bossTimer > 2.0f) {
+                    SpawnEType2(enemies, camera.target.x, player.pos);
+                    bossTimer = 0;
+                }
+            }
+
+            // End wave when boss dead
+            if (bossSpawned && !IsBossAlive(enemies)) {
+                state = GAMEOVER; // later → Wave 2
+            }
+
             // GAME OVER CONDITIONS
             if (player.hp <= 0) {
                 player.hp = 0;
                 state = GAMEOVER;
             }
 
-            if (clearedWave) {
-                waveClearTimer -= GetFrameTime();
-                if (waveClearTimer <= 0) {
-                    state = GAMEOVER;
-                }
-            }
-
-            // Removed duplicate wave check (causing compile error)
         }
 
         // RESTART - fix plyerrightshiftbug
@@ -137,7 +138,8 @@ int main() {
             bullets.clear();
             enemies.clear();
             energy = 0;
-            clearedWave = false;
+            bossSpawned = false;
+            bossTimer = 0.0f;
             state = MENU;
         }
 
@@ -180,4 +182,3 @@ int main() {
 
     CloseWindow();
 }
-

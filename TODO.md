@@ -1,11 +1,23 @@
-# Player Movement Changes TODO - COMPLETE ✅
+# Brainrot Shooter Wave 1 Implementation TODO
 
-## Changes Applied:
-- [x] 1. Updated include/player.h: Added `Vector2 velocity; float speed = 5.0f;` to Player
-- [x] 2. Updated src/player.cpp: A/D keys for left/right movement at speed 5, x clamped 100-800, removed auto `pos.x +=2`
-- [x] 3. Updated src/enemy.cpp: Added `worldSpeed=3.0f`, enemies `pos.x -= worldSpeed*dt`, cull if `pos.x < player.x -500`
-- [ ] 4. Compile/test
+## Plan Summary
+**Information Gathered:**
+- enemy.h: Basic Enemy struct, old 3 function decls.
+- enemy.cpp: Old SpawnEnemies(small/big), simple UpdateEnemies left-move+collide, Draw circles. No types/lanes/boss.
+- main.cpp: Old spawn in MENU, UpdateEnemies(player.pos, hp) [needs camX], clear→GAMEOVER. No boss logic. Uses AreAllEnemiesGone (needs removal? but not conflicting).
 
-## Result:
-Player now movable within screen (A/D, clamped), world auto-scrolls via enemy movement. Ready for build/test.
+**Files to Edit:**
+- include/enemy.h
+- src/enemy.cpp (full replace)
+- src/main.cpp
+
+**Followup:** Run `build.bat` to compile/test.
+
+## Steps (check off as completed):
+- [x] Step 1: Update include/enemy.h (enum + struct + new decls)
+- [x] Step 2: Replace src/enemy.cpp with new Wave1 version
+- [x] Step 3: Update src/main.cpp (vars + spawn + UpdateEnemies args + wave logic)
+- [x] Step 4: Compile with build.bat and test wave progression (spawn→etype1→boss→etype2→gameover)
+
+Progress will be updated after each step.
 
