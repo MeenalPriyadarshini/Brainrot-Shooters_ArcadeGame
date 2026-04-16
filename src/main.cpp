@@ -17,7 +17,16 @@ InitWindow(screenWidth, screenHeight, "Arcade Prototype");
     HideCursor();
 
     // Assets
+
+
     Sound damageSound = LoadSound("assets/sounds/dmageSound.wav");
+    Sound gunSound = LoadSound("assets/sounds/gunsound.mp3");
+    Sound catAttackSound = LoadSound("assets/sounds/catattack.mp3");
+    SetSoundVolume(gunSound, 0.8f);
+    SetSoundVolume(damageSound, 1.0f);
+    SetSoundVolume(catAttackSound, 0.7f);
+
+
 
     // Texture2D gunTex = LoadTexture("assets/images/gun.png");
     // Texture2D bulletTex = LoadTexture("assets/images/bullet.png");
@@ -87,10 +96,13 @@ InitWindow(screenWidth, screenHeight, "Arcade Prototype");
 
             // SHOOT
             shootCooldown += GetFrameTime();
+
             if (IsKeyDown(KEY_W) && shootCooldown > 0.15f) {
                 bullets.push_back({center, {dir.x*10, dir.y*10}, true});
+                PlaySound(gunSound);
                 shootCooldown = 0;
             }
+
 
             UpdateBullets(bullets);
             UpdateEnemies(enemies, player, camera.target.x, damageSound);

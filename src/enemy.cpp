@@ -143,11 +143,17 @@ void UpdateEnemies(std::vector<Enemy>& enemies, Player& p, float camX, Sound dam
                     dir.x /= len2;
                     dir.y /= len2;
 
-                    float speed = 320.0f; // 🔥 increased speed
+
+                    float speed = 420.0f; // super fast dash!
                     e.velocity = {dir.x * speed, dir.y * speed};
 
+
+
+
                     e.locked = true;
+
                 }
+
             }
             else {
                 // move after lock
