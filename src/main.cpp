@@ -11,11 +11,22 @@ int main() {
     const int screenWidth = 900;
     const int screenHeight = 500;
 
-    InitWindow(screenWidth, screenHeight, "Arcade Prototype");
+InitWindow(screenWidth, screenHeight, "Arcade Prototype");
+    InitAudioDevice();
     SetTargetFPS(60);
     HideCursor();
 
- Player player = { {100, 380}, {0, 0}, 5.0f, 0.0f, true, 100 };
+    // Assets
+    Sound damageSound = LoadSound("assets/sounds/dmageSound.wav");
+
+    // Texture2D gunTex = LoadTexture("assets/images/gun.png");
+    // Texture2D bulletTex = LoadTexture("assets/images/bullet.png");
+    // Texture2D impactTex = LoadTexture("assets/images/impact.png");
+
+
+
+ Player player = { {100, 380}, {0, 0}, 5.0f, 0.0f, true, 100, 0.0f };
+
     std::vector<Bullet> bullets;
     std::vector<Enemy> enemies;
 
@@ -82,7 +93,9 @@ int main() {
             }
 
             UpdateBullets(bullets);
-            UpdateEnemies(enemies, player.pos, camera.target.x, player.hp);
+            UpdateEnemies(enemies, player, camera.target.x, damageSound);
+
+
             
             // COLLISION
             for (auto &b : bullets) {
@@ -134,7 +147,8 @@ int main() {
         if (state == GAMEOVER && IsKeyPressed(KEY_R)) {
             timePlaying = 0.0f;
             camera.target = {100.0f, 380.0f};
-            player = { {100, 380}, {0, 0}, 5.0f, 0.0f, true, 100 };
+            player = { {100, 380}, {0, 0}, 5.0f, 0.0f, true, 100, 0.0f };
+
             bullets.clear();
             enemies.clear();
             energy = 0;
@@ -180,5 +194,12 @@ int main() {
         EndDrawing();
     }
 
+    // Cleanup
+    // UnloadSound(damageSound);
+    // UnloadTexture(gunTex);
+    // UnloadTexture(bulletTex);
+    // UnloadTexture(impactTex);
+    CloseAudioDevice();
     CloseWindow();
 }
+

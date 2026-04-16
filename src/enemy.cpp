@@ -52,10 +52,12 @@ void SpawnEType2(std::vector<Enemy>& enemies, float camX, const Vector2& playerP
 
 
     // Direction toward player
-    Vector2 dir = {
-        playerPos.x - e.pos.x,
-        playerPos.y - e.pos.y
-    };
+                    Vector2 dir = {
+                        playerPos.x - e.pos.x,
+                        playerPos.y - e.pos.y
+                    };
+
+
 
     // Normalize
     float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
@@ -94,7 +96,9 @@ void SpawnEType2(std::vector<Enemy>& enemies, float camX, const Vector2& playerP
 
 // ---------------- UPDATE ----------------
 
-void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, float camX, int& hp) {
+void UpdateEnemies(std::vector<Enemy>& enemies, Player& p, float camX, Sound damageSound) {
+
+
 
     float dt = GetFrameTime();
     static float collisionTimer = 0.0f;
@@ -117,9 +121,10 @@ void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, float 
 
                     // 🔥 LOCK TARGET (ONCE)
                     Vector2 dir = {
-                        playerPos.x - e.pos.x,
-                        playerPos.y - e.pos.y
+                        p.pos.x - e.pos.x,
+                        p.pos.y - e.pos.y
                     };
+
 
                     float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
                     if (len > 0.1f) {
@@ -160,6 +165,7 @@ void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, float 
         }
 
         // collision
+        Vector2 playerPos = p.pos;
         Rectangle playerHitbox = {
             playerPos.x - 10,
             playerPos.y - 40,
@@ -167,11 +173,19 @@ void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, float 
             50
         };
 
+
         if (CheckCollisionCircleRec(e.pos, e.radius, playerHitbox) && collisionTimer > 0.5f) {
-            hp -= (e.type == ETYPE2) ? 30 : (e.type == ETYPE1 ? 15 : 15);
-            if (hp < 0) hp = 0;
+            p.hp -= (e.type == ETYPE2) ? 30 : (e.type == ETYPE1 ? 15 : 15);
+            if (p.hp < 0) p.hp = 0;
+            p.damageFlashTimer = 0.15f;
+            SetSoundVolume(damageSound, 1.0f);
+            PlaySound(damageSound);
             collisionTimer = 0.0f;
+
+
         }
+
+
 
 
         // cull offscreen left

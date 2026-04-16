@@ -8,7 +8,9 @@ float speed = 5.0f;
     float velocityY;
     bool onGround;
     int hp;
+    float damageFlashTimer;
 };
+
 
 void UpdatePlayer(Player& p);
 void DrawPlayer(const Player& p, Vector2 mouse);

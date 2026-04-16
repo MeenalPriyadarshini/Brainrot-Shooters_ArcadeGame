@@ -1,6 +1,8 @@
 #pragma once
 #include "raylib.h"
 #include <vector>
+#include "player.h"
+
 
 enum EnemyType {
     ETYPE1,
@@ -26,7 +28,8 @@ struct Enemy {
 
 
 
-void UpdateEnemies(std::vector<Enemy>& enemies, const Vector2& playerPos, float camX, int& hp);
+void UpdateEnemies(std::vector<Enemy>& enemies, Player& player, float camX, Sound damageSound);
+
 void DrawEnemies(const std::vector<Enemy>& enemies);
 
 void SpawnWave1Enemies(std::vector<Enemy>& enemies, float startX);

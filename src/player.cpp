@@ -12,6 +12,11 @@ Rectangle GetPlayerHitbox(const Player& p) {
 }
 
 void UpdatePlayer(Player& p) {
+    // Damage flash timer
+    if (p.damageFlashTimer > 0) {
+        p.damageFlashTimer -= GetFrameTime();
+    }
+
     // Horizontal movement (fixed timestep 60fps)
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
         p.velocity.x = -p.speed;
@@ -21,6 +26,7 @@ void UpdatePlayer(Player& p) {
         p.velocity.x = 0;
     }
     p.pos.x += p.velocity.x;
+
 
     // Jump and gravity (fixed timestep)
     if (IsKeyPressed(KEY_SPACE) && p.onGround) {
@@ -39,17 +45,25 @@ void UpdatePlayer(Player& p) {
 }
 
 void DrawPlayer(const Player& p, Vector2 mouse) {
+    Color playerColor = WHITE;
+    if (p.damageFlashTimer > 0) {
+        if ((int)(p.damageFlashTimer * 20) % 2 == 0) {
+            playerColor = RED;
+        }
+    }
 
     Vector2 center = {p.pos.x, p.pos.y - 20};
 
-    DrawCircleV(center, 8, WHITE);
-    DrawLine(center.x, center.y, center.x, center.y+30, WHITE);
+    DrawCircleV(center, 8, playerColor);
+    DrawLine(center.x, center.y, center.x, center.y+30, playerColor);
+
 
     float t = GetTime();
     float leg = std::sinf((float)t*10)*5;
 
-    DrawLine(center.x,center.y+30,center.x-10,center.y+45+leg,WHITE);
-    DrawLine(center.x,center.y+30,center.x+10,center.y+45-leg,WHITE);
+    DrawLine(center.x,center.y+30,center.x-10,center.y+45+leg,playerColor);
+    DrawLine(center.x,center.y+30,center.x+10,center.y+45-leg,playerColor);
+
 
     // gun
     Vector2 dir = {mouse.x-center.x, mouse.y-center.y};
